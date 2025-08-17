@@ -622,7 +622,7 @@ void RogueMonQuery_IsOfType(u8 func, u32 typeFlags)
         if(GetQueryBitFlag(species))
         {
             speciesFlags = 0;
-            Rogue_AppendSpeciesTypeFlags(species, &speciesFlags);
+            Rogue_AppendSpeciesTypeFlags(species, &speciesFlags, FALSE);
 
             if(func == QUERY_FUNC_INCLUDE)
             {
@@ -756,6 +756,84 @@ void RogueMonQuery_IsLegendary(u8 func)
     for(species = SPECIES_NONE + 1; species < QUERY_NUM_SPECIES; ITERATOR_INC(species))
     {
         if(GetQueryBitFlag(species) && RoguePokedex_IsSpeciesLegendary(species) != checkState)
+        {
+            SetQueryBitFlag(species, FALSE);
+        }
+    }
+}
+
+static inline bool8 RogueMonQuery_IsLegendaryImpossibleToMeet(u32 species)
+{
+    switch (species)
+    {
+        case SPECIES_DEOXYS_SPEED: case SPECIES_DEOXYS_ATTACK:
+        case SPECIES_DEOXYS_DEFENSE:
+            return TRUE;
+        case SPECIES_DIALGA_ORIGIN:
+            return TRUE;
+        case SPECIES_PALKIA_ORIGIN:
+            return TRUE;
+        case SPECIES_GIRATINA_ORIGIN:
+            return TRUE;
+        case SPECIES_SHAYMIN_SKY:
+            return TRUE;
+        case SPECIES_ARCEUS_FIGHTING: case SPECIES_ARCEUS_FLYING:
+        case SPECIES_ARCEUS_POISON: case SPECIES_ARCEUS_GROUND:
+        case SPECIES_ARCEUS_ROCK: case SPECIES_ARCEUS_BUG:
+        case SPECIES_ARCEUS_GHOST: case SPECIES_ARCEUS_STEEL:
+        case SPECIES_ARCEUS_FIRE: case SPECIES_ARCEUS_WATER:
+        case SPECIES_ARCEUS_GRASS: case SPECIES_ARCEUS_ELECTRIC:
+        case SPECIES_ARCEUS_PSYCHIC: case SPECIES_ARCEUS_ICE:
+        case SPECIES_ARCEUS_DRAGON: case SPECIES_ARCEUS_DARK:
+        case SPECIES_ARCEUS_FAIRY:
+            return TRUE;
+        case SPECIES_DARMANITAN_ZEN_MODE:
+            return TRUE;
+        case SPECIES_DARMANITAN_GALARIAN_ZEN_MODE:
+            return TRUE;
+        case SPECIES_TORNADUS_THERIAN:
+            return TRUE;
+        case SPECIES_THUNDURUS_THERIAN:
+            return TRUE;
+        case SPECIES_LANDORUS_THERIAN:
+            return TRUE;
+        case SPECIES_ENAMORUS_THERIAN:
+            return TRUE;
+        case SPECIES_KYUREM_BLACK:
+        case SPECIES_KYUREM_WHITE:
+            return TRUE;
+        case SPECIES_MELOETTA_PIROUETTE:
+            return TRUE;
+        case SPECIES_GENESECT_BURN_DRIVE: case SPECIES_GENESECT_DOUSE_DRIVE:
+        case SPECIES_GENESECT_CHILL_DRIVE: case SPECIES_GENESECT_SHOCK_DRIVE:
+            return TRUE;
+        case SPECIES_ZACIAN_CROWNED_SWORD:
+            return TRUE;
+        case SPECIES_ZAMAZENTA_CROWNED_SHIELD:
+            return TRUE;
+        case SPECIES_GIMMIGHOUL_ROAMING:
+            return TRUE;
+        case SPECIES_OGERPON_WELLSPRING_MASK: case SPECIES_OGERPON_HEARTHFLAME_MASK:
+        case SPECIES_OGERPON_CORNERSTONE_MASK: case SPECIES_OGERPON_TEAL_MASK_TERA:
+        case SPECIES_OGERPON_WELLSPRING_MASK_TERA: case SPECIES_OGERPON_HEARTHFLAME_MASK_TERA:
+        case SPECIES_OGERPON_CORNERSTONE_MASK_TERA: 
+            return TRUE;
+        case SPECIES_TERAPAGOS_STELLAR: case SPECIES_TERAPAGOS_TERASTAL:
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
+
+void RogueMonQuery_IsLegendaryImpossibleToEncounter(u8 func)
+{
+    u32 species;
+    const bool32 checkState = (func == QUERY_FUNC_INCLUDE);
+    ASSERT_MON_QUERY;
+    
+    for(species = SPECIES_NONE + 1; species < QUERY_NUM_SPECIES; ITERATOR_INC(species))
+    {
+        if(GetQueryBitFlag(species) && RogueMonQuery_IsLegendaryImpossibleToMeet(species) != checkState)
         {
             SetQueryBitFlag(species, FALSE);
         }
@@ -1046,7 +1124,7 @@ static bool8 Query_IsSpeciesEnabledInternal(u16 species, bool32 forceDexCheck)
     if(gRogueSpeciesInfo[species].baseHP != 0)
     {
 #ifdef ROGUE_EXPANSION
-        if(species > GEN9_START && species < PLACEHOLDER_START) // Making sure that Pecharunt is included
+        if(species > GEN9_START && species <= PLACEHOLDER_START)
         {
             // Gen 9 section is after the forms start
             // Illegal species for either wild or trainers
